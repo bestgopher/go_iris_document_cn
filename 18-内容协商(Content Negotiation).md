@@ -1,7 +1,7 @@
 **有时候一个服务器应用程序需要在相同的 URI 上提供资源不同表示形式。**当然这也可以手动实现，检查 `Accept` 请求头，设置推送的请求表单的文本。然而，当你的程序管理更多的资源和不同形式的时候，这将变得非常痛苦，你需要检查 `Accept-Charset`，`Accept-Encoding`，设置一些服务器端优先级，正确处理错误等等。
 
 有一些 Go 的 web 框架已经艰难地实现了这个特性，但是它们不能正确地做以下的事情：
- 
+
 - 不处理 `accept-charset`
 - 不处理 `accept-encoding`
 - 不会发送 `RFC` 提出的一些错误状态码( `406 not acceptable`)。
@@ -21,10 +21,12 @@
 
 ## 示例(Example)
 
-	type testdata struct {
-	    Name string `json:"name" xml:"Name"`
-	    Age  int    `json:"age" xml:"Age"`
-	}
+```go
+type testdata struct {
+    Name string `json:"name" xml:"Name"`
+    Age  int    `json:"age" xml:"Age"`
+}
+```
 
 通过 `gzip` 编码算法将资源渲染为 `application/json` 或者 `text/html` 或者 `application/xml`。
 
@@ -33,38 +35,42 @@
 - 当客户端的 `Accpet-Encoding` 头包含 `gzip` 或者为空时
 
 
-		app.Get("/resource", func(ctx iris.Context) {
-		    data := testdata{
-		        Name: "test name",
-		        Age:  26,
-		    }
-		
-		        ctx.Negotiation().JSON().XML().EncodingGzip()
-		
-		    _, err := ctx.Negotiate(data)
-		    if err != nil {
-		        ctx.Writef("%v", err)
-		    }
-		})
-
-或者在一个中间件中定义他们，然后在最后的处理器中以 `nil` 参数调用`Negotiate`。
-	
-	ctx.Negotiation().JSON(data).XML(data).Any("content for */*")
-	ctx.Negotiate(nil) 
-
-	app.Get("/resource2", func(ctx iris.Context) {
-	    jsonAndXML := testdata{
+```go
+	app.Get("/resource", func(ctx iris.Context) {
+	    data := testdata{
 	        Name: "test name",
 	        Age:  26,
 	    }
 	
-	    ctx.Negotiation().
-	        JSON(jsonAndXML).
-	        XML(jsonAndXML).
-	        HTML("<h1>Test Name</h1><h2>Age 26</h2>")
+	        ctx.Negotiation().JSON().XML().EncodingGzip()
 	
-	    ctx.Negotiate(nil)
+	    _, err := ctx.Negotiate(data)
+	    if err != nil {
+	        ctx.Writef("%v", err)
+	    }
 	})
+```
+
+或者在一个中间件中定义他们，然后在最后的处理器中以 `nil` 参数调用`Negotiate`。
+	
+```go
+ctx.Negotiation().JSON(data).XML(data).Any("content for */*")
+ctx.Negotiate(nil) 
+
+app.Get("/resource2", func(ctx iris.Context) {
+    jsonAndXML := testdata{
+        Name: "test name",
+        Age:  26,
+    }
+
+    ctx.Negotiation().
+        JSON(jsonAndXML).
+        XML(jsonAndXML).
+        HTML("<h1>Test Name</h1><h2>Age 26</h2>")
+
+    ctx.Negotiate(nil)
+})
+```
 
 ## 文献资料(Documentation)
 

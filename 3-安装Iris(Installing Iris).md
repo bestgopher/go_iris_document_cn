@@ -2,12 +2,16 @@
 
 唯一的需求就是 Go 语言，版本为1.13。
 
-	$ cd $YOUR_PROJECT_PATH 
-	$ export GO111MODULE=on
+```shell
+$ cd $YOUR_PROJECT_PATH 
+$ export GO111MODULE=on
+```
 
 ## 安装(Install)
 
-	go get github.com/kataras/iris/v12@latest
+```shell
+go get github.com/kataras/iris/v12@latest
+```
 
 或者编辑你项目的 <font color=red>**`go.mod`**</font> 文件。
 
@@ -21,13 +25,17 @@
 
 然后：
 
-	go build
+```shell
+go build
+```
 
 
 ## 怎么更新(How to update)
 这个 `go-get` 命令来获取最新和最好的  <font color=red>**`Iris`**</font> 版本。 `Master` 分支通常足够稳定了。
 
-	$ go get -u github.com/kataras/iris/v12@latest
+```shell
+$ go get -u github.com/kataras/iris/v12@latest
+```
 
 ## 故障排除(Troubleshooting)
 

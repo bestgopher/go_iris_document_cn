@@ -8,68 +8,82 @@
 
 返回 `*Route`
 
-	HandleDir(requestPath, directory string, opts ...DirOptions) (getRoute *Route)
+```go
+HandleDir(requestPath, directory string, opts ...DirOptions) (getRoute *Route)
+```
 
 
 `DirOptions`  结构体是这样的：
 
-	type DirOptions struct {
-	    // 默认为 /index.html, 如果请求路径以 **/*/$IndexName 结尾，它会重定向到 **/*(/)，
-	    // 然后另一个处理器会处理它，
-	    // 如果最后开发人员没有设法手动处理它，
-	    // 框架会自动注册一个名为index handler 的处理器来作为这个处理器
-	    IndexName string
+```go
+type DirOptions struct {
+    // 默认为 /index.html, 如果请求路径以 **/*/$IndexName 结尾，它会重定向到 **/*(/)，
+    // 然后另一个处理器会处理它，
+    // 如果最后开发人员没有设法手动处理它，
+    // 框架会自动注册一个名为index handler 的处理器来作为这个处理器
+    IndexName string
 
-	   // 文件是否需要gzip压缩
-	    Gzip bool
-	
-	    // 如果 IndexName没有找到，是否列出当前请求目录中的文件
-	    ShowList bool
+   // 文件是否需要gzip压缩
+    Gzip bool
 
-	    // 如果 ShowList 为 true，这个函数将会替代默认的列出当前请求目录中文件的函数。
-	    DirList func(ctx iris.Context, dirName string, dir http.File) error
-	
-	    // 内嵌时
-	    Asset      func(name string) ([]byte, error)   
-	    AssetInfo  func(name string) (os.FileInfo, error)
-	    AssetNames func() []string
+    // 如果 IndexName没有找到，是否列出当前请求目录中的文件
+    ShowList bool
 
-	    //  循环遍历每个找到的请求资源的可选验证器。
-	    AssetValidator func(ctx iris.Context, name string) bool
-	}
+    // 如果 ShowList 为 true，这个函数将会替代默认的列出当前请求目录中文件的函数。
+    DirList func(ctx iris.Context, dirName string, dir http.File) error
+
+    // 内嵌时
+    Asset      func(name string) ([]byte, error)   
+    AssetInfo  func(name string) (os.FileInfo, error)
+    AssetNames func() []string
+
+    //  循环遍历每个找到的请求资源的可选验证器。
+    AssetValidator func(ctx iris.Context, name string) bool
+}
+```
 
 让我假设在你的可执行文件目录中有一个 `./assets` 文件夹，你想要处理 `http://localhost:8080/static/**/*` 路由下的文件。
 
-	app := iris.New()
-	
-	app.HandleDir("/static", "./assets")
-	
-	app.Run(iris.Addr(":8080"))
+```go
+app := iris.New()
+
+app.HandleDir("/static", "./assets")
+
+app.Run(iris.Addr(":8080"))
+```
 
 现在，如果您想将静态文件嵌入可执行文件内部以不依赖于系统目录，则可以使用 `go-bindata` 之类的工具将文件转换为程序内的[] byte。 让我们快速学习一下，以及Iris如何帮助服务这些数据。
 
 安装 `go-bindata`
 
-	go get -u github.com/go-bindata/go-bindata/...
+```shell
+go get -u github.com/go-bindata/go-bindata/...
+```
 
 导航到你程序的目录，并且 `./assets` 子目录存在，然后执行：
 
-	$ go-bindata ./assets/...
+```shell
+$ go-bindata ./assets/...
+```
 
 上面创建了一个go文件，其中包含三个主要的函数：`Asset`，`AssetInfo`，`AssetNames`。在 `iris.DirOptions` 中使用它们：
 
-	// [app := iris.New...]
-	
-	app.HandleDir("/static", "./assets", iris.DirOptions {
-	    Asset: Asset,
-	    AssetInfo: AssetInfo,
-	    AssetNames: AssetNames,
-	    Gzip: false,
-	})
+```go
+// [app := iris.New...]
+
+app.HandleDir("/static", "./assets", iris.DirOptions {
+    Asset: Asset,
+    AssetInfo: AssetInfo,
+    AssetNames: AssetNames,
+    Gzip: false,
+})
+```
 
 编译你的程序：
 
-	$ go build
+```shell
+$ go build
+```
 
 `HandleDir` 物理目录和内嵌目录的所有标准，包括 `content-range`。
 
@@ -80,10 +94,14 @@
 - 第一个参数：目录
 - 第一个参数：可选参数，调用者可选的配置
 
-		iris.FileServer(directory string, options ...DirOptions)
+```shell
+	iris.FileServer(directory string, options ...DirOptions)
+```
 
 使用：
 
-	handler := iris.FileServer("./assets", iris.DirOptions {
-	    ShowList: true, Gzip: true, IndexName: "index.html",
-	})
+```go
+handler := iris.FileServer("./assets", iris.DirOptions {
+    ShowList: true, Gzip: true, IndexName: "index.html",
+})
+```

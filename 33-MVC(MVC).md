@@ -6,7 +6,9 @@
 
 Iris对MVC（模型视图控制器）架构模式提供了一流的支持，在Go世界中其他任何地方都找不到这些东西。 您将必须导入 `iris/mvc` 子包。
 
-	import "github.com/kataras/iris/v12/mvc"
+```go
+import "github.com/kataras/iris/v12/mvc"
+```
 
 Iris web 框架支持请求数据，模型，持续性数据和最快的执行速度绑定。
 
@@ -19,54 +21,58 @@ Iris web 框架支持请求数据，模型，持续性数据和最快的执行�
 
  通过每个控制器的 `BeforeActivation` 自定义事件回调，将自定义控制器的struct方法用作具有自定义路径（甚至带有 `regex` 参数化路径）的处理程序。 例：
 
-	import (
-	    "github.com/kataras/iris/v12"
-	    "github.com/kataras/iris/v12/mvc"
-	)
-	
-	func main() {
-	    app := iris.New()
-	    mvc.Configure(app.Party("/root"), myMVC)
-	    app.Run(iris.Addr(":8080"))
-	}
-	
-	func myMVC(app *mvc.Application) {
-	    // app.Register(...)
-	    // app.Router.Use/UseGlobal/Done(...)
-	    app.Handle(new(MyController))
-	}
-	
-	type MyController struct {}
-	
-	func (m *MyController) BeforeActivation(b mvc.BeforeActivation) {
-	    // b.Dependencies().Add/Remove
-	    // b.Router().Use/UseGlobal/Done
-	    // and any standard Router API call you already know
-	
-	    // 1-> Method
-	    // 2-> Path
-	    // 3-> The controller's function name to be parsed as handler
-	    // 4-> Any handlers that should run before the MyCustomHandler
-	    b.Handle("GET", "/something/{id:long}", "MyCustomHandler", anyMiddleware...)
-	}
-	
-	// GET: http://localhost:8080/root
-	func (m *MyController) Get() string {
-	    return "Hey"
-	}
-	
-	// GET: http://localhost:8080/root/something/{id:long}
-	func (m *MyController) MyCustomHandler(id int64) string {
-	    return "MyCustomHandler says Hey"
-	}
+```go
+import (
+    "github.com/kataras/iris/v12"
+    "github.com/kataras/iris/v12/mvc"
+)
+
+func main() {
+    app := iris.New()
+    mvc.Configure(app.Party("/root"), myMVC)
+    app.Run(iris.Addr(":8080"))
+}
+
+func myMVC(app *mvc.Application) {
+    // app.Register(...)
+    // app.Router.Use/UseGlobal/Done(...)
+    app.Handle(new(MyController))
+}
+
+type MyController struct {}
+
+func (m *MyController) BeforeActivation(b mvc.BeforeActivation) {
+    // b.Dependencies().Add/Remove
+    // b.Router().Use/UseGlobal/Done
+    // and any standard Router API call you already know
+
+    // 1-> Method
+    // 2-> Path
+    // 3-> The controller's function name to be parsed as handler
+    // 4-> Any handlers that should run before the MyCustomHandler
+    b.Handle("GET", "/something/{id:long}", "MyCustomHandler", anyMiddleware...)
+}
+
+// GET: http://localhost:8080/root
+func (m *MyController) Get() string {
+    return "Hey"
+}
+
+// GET: http://localhost:8080/root/something/{id:long}
+func (m *MyController) MyCustomHandler(id int64) string {
+    return "MyCustomHandler says Hey"
+}
+```
 
 通过为依赖项定义服务或者有一个 `Singleton` 控制器作用域， 在你的控制器结构体中持续性数据(在两个请求间分享数据)。
 
 在控制器间分享依赖或者将它们注册到一个父MVC程序中，有能力在每个控制器的 `BeforeActivate` 可选事件回调函数中修改依赖，例如：
 
-	func(c *MyController) BeforeActivation(b mvc.BeforeActivation) {
-			 b.Dependencies().Add/Remove(...) 
-	}
+```go
+func(c *MyController) BeforeActivation(b mvc.BeforeActivation) {
+		 b.Dependencies().Add/Remove(...) 
+}
+```
 
 作为控制器的字段来访问 `Context`(无需手动绑定)，即 `Ctx iris.Context` 或者通过一个方法的输出参数，即 `func(ctx iris.Context, otherArguments)`
 
@@ -106,27 +112,31 @@ Iris web 框架支持请求数据，模型，持续性数据和最快的执行�
 
 可选的响应输出参数，就像我们前面看到的一样：
 
-	func(c *ExampleController) Get() string |
-	                                (string, string) |
-	                                (string, int) |
-	                                int |
-	                                (int, string) |
-	                                (string, error) |
-	                                error |
-	                                (int, error) |
-	                                (any, bool) |
-	                                (customStruct, error) |
-	                                customStruct |
-	                                (customStruct, int) |
-	                                (customStruct, string) |
-	                                mvc.Result or (mvc.Result, error)
+```go
+func(c *ExampleController) Get() string |
+                                (string, string) |
+                                (string, int) |
+                                int |
+                                (int, string) |
+                                (string, error) |
+                                error |
+                                (int, error) |
+                                (any, bool) |
+                                (customStruct, error) |
+                                customStruct |
+                                (customStruct, int) |
+                                (customStruct, string) |
+                                mvc.Result or (mvc.Result, error)
+```
 
 这里的 `mvc.Result` 是 `hero.Result` 的别名，就是这个接口：
 
-	type Result interface {
-	    // Dispatch should sends the response to the context's response writer.
-	    Dispatch(ctx iris.Context)
-	}
+```go
+type Result interface {
+    // Dispatch should sends the response to the context's response writer.
+    Dispatch(ctx iris.Context)
+}
+```
 
 ----------
 
@@ -141,141 +151,140 @@ Iris web 框架支持请求数据，模型，持续性数据和最快的执行�
 
 #### 仔细阅读注释
 
-	package main
-	
-	import (
-	    "github.com/kataras/iris/v12"
-	    "github.com/kataras/iris/v12/mvc"
-	
-	    "github.com/kataras/iris/v12/middleware/logger"
-	    "github.com/kataras/iris/v12/middleware/recover"
-	)
-	
-	func main() {
-	    app := iris.New()
-	    // Optionally, add two built'n handlers
-	    // that can recover from any http-relative panics
-	    // and log the requests to the terminal.
-	    app.Use(recover.New())
-	    app.Use(logger.New())
-	
-	    // Serve a controller based on the root Router, "/".
-	    mvc.New(app).Handle(new(ExampleController))
-	
-	    // http://localhost:8080
-	    // http://localhost:8080/ping
-	    // http://localhost:8080/hello
-	    // http://localhost:8080/custom_path
-	    app.Run(iris.Addr(":8080"))
-	}
-	
-	// ExampleController serves the "/", "/ping" and "/hello".
-	type ExampleController struct{}
-	
-	// Get serves
-	// Method:   GET
-	// Resource: http://localhost:8080
-	func (c *ExampleController) Get() mvc.Result {
-	    return mvc.Response{
-	        ContentType: "text/html",
-	        Text:        "<h1>Welcome</h1>",
-	    }
-	}
-	
-	// GetPing serves
-	// Method:   GET
-	// Resource: http://localhost:8080/ping
-	func (c *ExampleController) GetPing() string {
-	    return "pong"
-	}
-	
-	// GetHello serves
-	// Method:   GET
-	// Resource: http://localhost:8080/hello
-	func (c *ExampleController) GetHello() interface{} {
-	    return map[string]string{"message": "Hello Iris!"}
-	}
-	
-	// BeforeActivation called once, before the controller adapted to the main application
-	// and of course before the server ran.
-	// After version 9 you can also add custom routes for a specific controller's methods.
-	// Here you can register custom method's handlers
-	// use the standard router with `ca.Router` to
-	// do something that you can do without mvc as well,
-	// and add dependencies that will be binded to
-	// a controller's fields or method function's input arguments.
-	func (c *ExampleController) BeforeActivation(b mvc.BeforeActivation) {
-	    anyMiddlewareHere := func(ctx iris.Context) {
-	        ctx.Application().Logger().Warnf("Inside /custom_path")
-	        ctx.Next()
-	    }
-	
-	    b.Handle(
-	        "GET",
-	        "/custom_path",
-	        "CustomHandlerWithoutFollowingTheNamingGuide",
-	        anyMiddlewareHere,
-	    )
-	
-	    // or even add a global middleware based on this controller's router,
-	    // which in this example is the root "/":
-	    // b.Router().Use(myMiddleware)
-	}
-	
-	// CustomHandlerWithoutFollowingTheNamingGuide serves
-	// Method:   GET
-	// Resource: http://localhost:8080/custom_path
-	func (c *ExampleController) CustomHandlerWithoutFollowingTheNamingGuide() string {
-	    return "hello from the custom handler without following the naming guide"
-	}
-	
-	// GetUserBy serves
-	// Method:   GET
-	// Resource: http://localhost:8080/user/{username:string}
-	// By is a reserved "keyword" to tell the framework that you're going to
-	// bind path parameters in the function's input arguments, and it also
-	// helps to have "Get" and "GetBy" in the same controller.
-	//
-	// func (c *ExampleController) GetUserBy(username string) mvc.Result {
-	//     return mvc.View{
-	//         Name: "user/username.html",
-	//         Data: username,
-	//     }
-	// }
-	
-	/* Can use more than one, the factory will make sure
-	that the correct http methods are being registered for each route
-	for this controller, uncomment these if you want:
-	
-	func (c *ExampleController) Post() {}
-	func (c *ExampleController) Put() {}
-	func (c *ExampleController) Delete() {}
-	func (c *ExampleController) Connect() {}
-	func (c *ExampleController) Head() {}
-	func (c *ExampleController) Patch() {}
-	func (c *ExampleController) Options() {}
-	func (c *ExampleController) Trace() {}
-	*/
-	
-	/*
-	func (c *ExampleController) All() {}
-	//        OR
-	func (c *ExampleController) Any() {}
+```go
+package main
 
+import (
+    "github.com/kataras/iris/v12"
+    "github.com/kataras/iris/v12/mvc"
 
-​	
-​	
-	func (c *ExampleController) BeforeActivation(b mvc.BeforeActivation) {
-	    // 1 -> the HTTP Method
-	    // 2 -> the route's path
-	    // 3 -> this controller's method name that should be handler for that route.
-	    b.Handle("GET", "/mypath/{param}", "DoIt", optionalMiddlewareHere...)
-	}
-	
-	// After activation, all dependencies are set-ed - so read only access on them
-	// but still possible to add custom controller or simple standard handlers.
-	func (c *ExampleController) AfterActivation(a mvc.AfterActivation) {}
-	*/
+    "github.com/kataras/iris/v12/middleware/logger"
+    "github.com/kataras/iris/v12/middleware/recover"
+)
+
+func main() {
+    app := iris.New()
+    // Optionally, add two built'n handlers
+    // that can recover from any http-relative panics
+    // and log the requests to the terminal.
+    app.Use(recover.New())
+    app.Use(logger.New())
+
+    // Serve a controller based on the root Router, "/".
+    mvc.New(app).Handle(new(ExampleController))
+
+    // http://localhost:8080
+    // http://localhost:8080/ping
+    // http://localhost:8080/hello
+    // http://localhost:8080/custom_path
+    app.Run(iris.Addr(":8080"))
+}
+
+// ExampleController serves the "/", "/ping" and "/hello".
+type ExampleController struct{}
+
+// Get serves
+// Method:   GET
+// Resource: http://localhost:8080
+func (c *ExampleController) Get() mvc.Result {
+    return mvc.Response{
+        ContentType: "text/html",
+        Text:        "<h1>Welcome</h1>",
+    }
+}
+
+// GetPing serves
+// Method:   GET
+// Resource: http://localhost:8080/ping
+func (c *ExampleController) GetPing() string {
+    return "pong"
+}
+
+// GetHello serves
+// Method:   GET
+// Resource: http://localhost:8080/hello
+func (c *ExampleController) GetHello() interface{} {
+    return map[string]string{"message": "Hello Iris!"}
+}
+
+// BeforeActivation called once, before the controller adapted to the main application
+// and of course before the server ran.
+// After version 9 you can also add custom routes for a specific controller's methods.
+// Here you can register custom method's handlers
+// use the standard router with `ca.Router` to
+// do something that you can do without mvc as well,
+// and add dependencies that will be binded to
+// a controller's fields or method function's input arguments.
+func (c *ExampleController) BeforeActivation(b mvc.BeforeActivation) {
+    anyMiddlewareHere := func(ctx iris.Context) {
+        ctx.Application().Logger().Warnf("Inside /custom_path")
+        ctx.Next()
+    }
+
+    b.Handle(
+        "GET",
+        "/custom_path",
+        "CustomHandlerWithoutFollowingTheNamingGuide",
+        anyMiddlewareHere,
+    )
+
+    // or even add a global middleware based on this controller's router,
+    // which in this example is the root "/":
+    // b.Router().Use(myMiddleware)
+}
+
+// CustomHandlerWithoutFollowingTheNamingGuide serves
+// Method:   GET
+// Resource: http://localhost:8080/custom_path
+func (c *ExampleController) CustomHandlerWithoutFollowingTheNamingGuide() string {
+    return "hello from the custom handler without following the naming guide"
+}
+
+// GetUserBy serves
+// Method:   GET
+// Resource: http://localhost:8080/user/{username:string}
+// By is a reserved "keyword" to tell the framework that you're going to
+// bind path parameters in the function's input arguments, and it also
+// helps to have "Get" and "GetBy" in the same controller.
+//
+// func (c *ExampleController) GetUserBy(username string) mvc.Result {
+//     return mvc.View{
+//         Name: "user/username.html",
+//         Data: username,
+//     }
+// }
+
+/* Can use more than one, the factory will make sure
+that the correct http methods are being registered for each route
+for this controller, uncomment these if you want:
+
+func (c *ExampleController) Post() {}
+func (c *ExampleController) Put() {}
+func (c *ExampleController) Delete() {}
+func (c *ExampleController) Connect() {}
+func (c *ExampleController) Head() {}
+func (c *ExampleController) Patch() {}
+func (c *ExampleController) Options() {}
+func (c *ExampleController) Trace() {}
+*/
+
+/*
+func (c *ExampleController) All() {}
+//        OR
+func (c *ExampleController) Any() {}
+
+func (c *ExampleController) BeforeActivation(b mvc.BeforeActivation) {
+    // 1 -> the HTTP Method
+    // 2 -> the route's path
+    // 3 -> this controller's method name that should be handler for that route.
+    b.Handle("GET", "/mypath/{param}", "DoIt", optionalMiddlewareHere...)
+}
+
+// After activation, all dependencies are set-ed - so read only access on them
+// but still possible to add custom controller or simple standard handlers.
+func (c *ExampleController) AfterActivation(a mvc.AfterActivation) {}
+*/	
+```
 
 
 在控制器中每个以HTTP方法(`Get`，`Post`，`Put`，`Delete`...) 为前缀的函数，都作为一个 HTTP 端点。在上面的示例中，所有的函数都向响应写了一个字符串。注意每种方法之前的注释。

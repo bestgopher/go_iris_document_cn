@@ -11,14 +11,15 @@
 
 `Cache` 仅仅只需接收一个参数：缓存的生存时间。如果生存时间无效或者 <= 2秒，会从 `cache-control's maxage` 头部获取生存时间。
 
-	func Cache(expiration time.Duration) Handler
+```go
+func Cache(expiration time.Duration) Handler
+```
 
 所有类型的响应都可以被缓存，模板，json，文本，任何类型。
 
 使用它来达到服务器端缓存，查看 `Cache304` 获取另外的方法可能会更加适合你的需求。
 
 有关更多选项和自定义，请使用kataras / iris / cache.Cache，它返回一个结构，您可以从中添加或删除“规则”。
-
 
 ----------
 
@@ -29,7 +30,9 @@
 
 在 HTML 路由上使用这个中间件；即使在浏览器的“后退”和“前进”箭头按钮上也可以刷新页面。
 
-	func NoCache(Context)
+```go
+func NoCache(Context)
+```
 
 查看 `StaticCache` 获取相反的行为。
 
@@ -44,16 +47,20 @@
 使用：`app.Use(iris.StaticCache(24 * time.Hour))` 或者 `app.Use(iris.StaticCache(-1))`
 
 
-	func StaticCache(cacheDur time.Duration)Handler
+```go
+func StaticCache(cacheDur time.Duration)Handler
+```
 
 一个中间件，是一个简单的处理器，可以在其他处理器内部调用，例如：
 
-	 cacheMiddleware := iris.StaticCache(...)
-	
-	 func(ctx iris.Context){
-	  cacheMiddleware(ctx)
-	  [...]
-	}
+```go
+ cacheMiddleware := iris.StaticCache(...)
+
+ func(ctx iris.Context){
+  cacheMiddleware(ctx)
+  [...]
+}
+```
 
 ### Cache304
 
@@ -65,4 +72,6 @@
 
 开发人员可以通过手动查看系统目录的更改并根据文件修改日期使用 `ctx.WriteWithExpiration`（带有“ modtime”）来自由扩展此方法的行为，类似于 `HandleDir`（发送状态为OK（200）和浏览器磁盘缓存的方式， 304）。
 
-	func Cache304(expiresEvery time.Duration) Handler
+```go
+func Cache304(expiresEvery time.Duration) Handler
+```

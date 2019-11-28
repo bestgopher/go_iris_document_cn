@@ -4,120 +4,136 @@
 
 Go 开发者最常用的方法是通过传递一个形如 `hostname:ip` 形式的网络地址来开启一个服务。<font color=red>**`Iris`**</font> 中我们使用`iris.Addr`，它是一个 `iris.Runner` 类型。
 
-	// Listening on tcp with network address 0.0.0.0:8080
-	app.Run(iris.Addr(":8080"))
+```go
+// Listening on tcp with network address 0.0.0.0:8080
+app.Run(iris.Addr(":8080"))
+```
 
 有时候你在你的应用程序的其他地方创建一个标准库 `het/http` 服务器，并且你想使用它作为你的 Iris web 程序提供服务。
 
-	// Same as before but using a custom http.Server which may being used somewhere else too
-	app.Run(iris.Server(&http.Server{Addr:":8080"}))
+```go
+// Same as before but using a custom http.Server which may being used somewhere else too
+app.Run(iris.Server(&http.Server{Addr:":8080"}))
+```
 
 最高级的用法是创建一个自定义的或者标准的 `net/Listener`，然后传递给 `app.Run`。
 
-	// Using a custom net.Listener
-	l, err := net.Listen("tcp4", ":8080")
-	if err != nil {
-	    panic(err)
-	}
-	app.Run(iris.Listener(l))
+```go
+// Using a custom net.Listener
+l, err := net.Listen("tcp4", ":8080")
+if err != nil {
+    panic(err)
+}
+app.Run(iris.Listener(l))
+```
 
 一个更加完整的示例，使用的是仅Unix套接字文件特性
 
-	package main
-	
-	import (
-	    "os"
-	    "net"
-	
-	    "github.com/kataras/iris/v12"
-	)
-	
-	func main() {
-	    app := iris.New()
-	
-	    // UNIX socket
-	    if errOs := os.Remove(socketFile); errOs != nil && !os.IsNotExist(errOs) {
-	        app.Logger().Fatal(errOs)
-	    }
-	
-	    l, err := net.Listen("unix", socketFile)
-	
-	    if err != nil {
-	        app.Logger().Fatal(err)
-	    }
-	
-	    if err = os.Chmod(socketFile, mode); err != nil {
-	        app.Logger().Fatal(err)
-	    }
-	
-	    app.Run(iris.Listener(l))
-	}
+```go
+package main
+
+import (
+    "os"
+    "net"
+
+    "github.com/kataras/iris/v12"
+)
+
+func main() {
+    app := iris.New()
+
+    // UNIX socket
+    if errOs := os.Remove(socketFile); errOs != nil && !os.IsNotExist(errOs) {
+        app.Logger().Fatal(errOs)
+    }
+
+    l, err := net.Listen("unix", socketFile)
+
+    if err != nil {
+        app.Logger().Fatal(err)
+    }
+
+    if err = os.Chmod(socketFile, mode); err != nil {
+        app.Logger().Fatal(err)
+    }
+
+    app.Run(iris.Listener(l))
+}
+```
 
 UNIX 和 BSD 主机可以使用重用端口的功能。
 
-	package main
-	
-	import (
-	    // Package tcplisten provides customizable TCP net.Listener with various
-	    // performance-related options:
-	    //
-	    //   - SO_REUSEPORT. This option allows linear scaling server performance
-	    //     on multi-CPU servers.
-	    //     See https://www.nginx.com/blog/socket-sharding-nginx-release-1-9-1/ for details.
-	    //
-	    //   - TCP_DEFER_ACCEPT. This option expects the server reads from the accepted
-	    //     connection before writing to them.
-	    //
-	    //   - TCP_FASTOPEN. See https://lwn.net/Articles/508865/ for details.
-	    "github.com/valyala/tcplisten"
-	
-	    "github.com/kataras/iris/v12"
-	)
-	
-	// go get github.com/valyala/tcplisten
-	// go run main.go
-	
-	func main() {
-	    app := iris.New()
-	
-	    app.Get("/", func(ctx iris.Context) {
-	        ctx.HTML("<h1>Hello World!</h1>")
-	    })
-	
-	    listenerCfg := tcplisten.Config{
-	        ReusePort:   true,
-	        DeferAccept: true,
-	        FastOpen:    true,
-	    }
-	
-	    l, err := listenerCfg.NewListener("tcp", ":8080")
-	    if err != nil {
-	        app.Logger().Fatal(err)
-	    }
-	
-	    app.Run(iris.Listener(l))
-	}
+```go
+package main
+
+import (
+    // Package tcplisten provides customizable TCP net.Listener with various
+    // performance-related options:
+    //
+    //   - SO_REUSEPORT. This option allows linear scaling server performance
+    //     on multi-CPU servers.
+    //     See https://www.nginx.com/blog/socket-sharding-nginx-release-1-9-1/ for details.
+    //
+    //   - TCP_DEFER_ACCEPT. This option expects the server reads from the accepted
+    //     connection before writing to them.
+    //
+    //   - TCP_FASTOPEN. See https://lwn.net/Articles/508865/ for details.
+    "github.com/valyala/tcplisten"
+
+    "github.com/kataras/iris/v12"
+)
+
+// go get github.com/valyala/tcplisten
+// go run main.go
+
+func main() {
+    app := iris.New()
+
+    app.Get("/", func(ctx iris.Context) {
+        ctx.HTML("<h1>Hello World!</h1>")
+    })
+
+    listenerCfg := tcplisten.Config{
+        ReusePort:   true,
+        DeferAccept: true,
+        FastOpen:    true,
+    }
+
+    l, err := listenerCfg.NewListener("tcp", ":8080")
+    if err != nil {
+        app.Logger().Fatal(err)
+    }
+
+    app.Run(iris.Listener(l))
+}
+```
 
 ## HTTP/2和安全(HTTP/2 and Secure)
 如果你有签名文件密钥，你可以使用 `iris.TLS` 基于这些验证密钥开启 `https` 服务。
 
-	// TLS using files
-	app.Run(iris.TLS("127.0.0.1:443", "mycert.cert", "mykey.key"))
+```go
+// TLS using files
+app.Run(iris.TLS("127.0.0.1:443", "mycert.cert", "mykey.key"))
+```
 
 当你的应用准备部署**生产**时，你可以使用 `iris.AutoTLS` 方法，它通过[ https://letsencrypt.org]( https://letsencrypt.org " https://letsencrypt.org") 免费提供的证书来开启一个安全的服务。
 	
-	// Automatic TLS
-	app.Run(iris.AutoTLS(":443", "example.com", "admin@example.com"))
+```go
+// Automatic TLS
+app.Run(iris.AutoTLS(":443", "example.com", "admin@example.com"))
+```
 
 ## 任意iris.Runner(Any iris.Runner)
 有时你想要监听一些特定的东西，并且这些东西不是 `net.Listener` 类型的。你能够通过 `iris.Raw`
 方法做到，但是你得对此方法负责。
 
-	// Using any func() error,
-	// the responsibility of starting up a listener is up to you with this way,
-	// for the sake of simplicity we will use the
-	// ListenAndServe function of the `net/http` package.
-	app.Run(iris.Raw(&http.Server{Addr:":8080"}).ListenAndServe)
+```go
+// Using any func() error,
+// the responsibility of starting up a listener is up to you with this way,
+// for the sake of simplicity we will use the
+// ListenAndServe function of the `net/http` package.
+app.Run(iris.Raw(&http.Server{Addr:":8080"}).ListenAndServe)
+```
 
 
 ## host配置(Host configurators)
@@ -126,22 +142,26 @@ UNIX 和 BSD 主机可以使用重用端口的功能。
 
 例如，我们想要当服务器关闭的时候触发的回调函数：
 
-	app.Run(iris.Addr(":8080", func(h *iris.Supervisor) {
-	    h.RegisterOnShutdown(func() {
-	        println("server terminated")
-	    })
-	}))
+```go
+app.Run(iris.Addr(":8080", func(h *iris.Supervisor) {
+    h.RegisterOnShutdown(func() {
+        println("server terminated")
+    })
+}))
+```
 
 你甚至可以在再 `app.Run` 之前配置，但是不同的是，这个 host 配置器将会在所有的主机上执行(我们将在稍后看到 `app.NewHost` )
 
 
-	app := iris.New()
-	app.ConfigureHost(func(h *iris.Supervisor) {
-	    h.RegisterOnShutdown(func() {
-	        println("server terminated")
-	    })
-	})
-	app.Run(iris.Addr(":8080"))
+```go
+app := iris.New()
+app.ConfigureHost(func(h *iris.Supervisor) {
+    h.RegisterOnShutdown(func() {
+        println("server terminated")
+    })
+})
+app.Run(iris.Addr(":8080"))
+```
 
 当 `Run` 方法运行之后，通过 `Application#Hosts` 字段提供的所有 hosts 你的应用服务都可以访问。
 
@@ -153,12 +173,14 @@ UNIX 和 BSD 主机可以使用重用端口的功能。
 
 示例代码：
 
-	h := app.NewHost(&http.Server{Addr:":8080"})
-	h.RegisterOnShutdown(func(){
-	    println("server terminated")
-	})
-	
-	app.Run(iris.Raw(h.ListenAndServe))
+```go
+h := app.NewHost(&http.Server{Addr:":8080"})
+h.RegisterOnShutdown(func(){
+    println("server terminated")
+})
+
+app.Run(iris.Raw(h.ListenAndServe))
+```
 
 
 ## 多个主机(Multi hosts)
@@ -166,11 +188,13 @@ UNIX 和 BSD 主机可以使用重用端口的功能。
 	app := iris.New()
 	app.Get("/", indexHandler)
 	
-	// run in different goroutine in order to not block the main "goroutine".
-	go app.Run(iris.Addr(":8080"))
-	// start a second server which is listening on tcp 0.0.0.0:9090,
-	// without "go" keyword because we want to block at the last server-run.
-	app.NewHost(&http.Server{Addr:":9090"}).ListenAndServe()
+```go
+// run in different goroutine in order to not block the main "goroutine".
+go app.Run(iris.Addr(":8080"))
+// start a second server which is listening on tcp 0.0.0.0:9090,
+// without "go" keyword because we want to block at the last server-run.
+app.NewHost(&http.Server{Addr:":9090"}).ListenAndServe()
+```
 
 ## 优雅地关闭(Shutdown gracefully)
 
@@ -182,29 +206,32 @@ UNIX 和 BSD 主机可以使用重用端口的功能。
 
 
 
-	package main
-	
-	import (
-	    "context"
-	    "time"
-	
-	    "github.com/kataras/iris/v12"
-	)
-	
-	
-	func main() {
-	    app := iris.New()
-	
-	    iris.RegisterOnInterrupt(func() {
-	        timeout := 5 * time.Second
-	        ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	        defer cancel()
-	        // close all hosts
-	        app.Shutdown(ctx)
-	    })
-	
-	    app.Get("/", func(ctx iris.Context) {
-	        ctx.HTML(" <h1>hi, I just exist in order to see if the server is closed</h1>")
-	    })
-	
-	    app.Run(iris.Addr(":8080"), iris.WithoutInterruptHandler)
+```go
+package main
+
+import (
+    "context"
+    "time"
+
+    "github.com/kataras/iris/v12"
+)
+```
+
+```go
+func main() {
+    app := iris.New()
+
+    iris.RegisterOnInterrupt(func() {
+        timeout := 5 * time.Second
+        ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+        // close all hosts
+        app.Shutdown(ctx)
+    })
+
+    app.Get("/", func(ctx iris.Context) {
+        ctx.HTML(" <h1>hi, I just exist in order to see if the server is closed</h1>")
+    })
+
+    app.Run(iris.Addr(":8080"), iris.WithoutInterruptHandler)
+```
