@@ -80,7 +80,7 @@ import "github.com/kataras/iris/hero"
 			Username string `form:"username"`
 			Password  string `form:"password"`
 	}
-		
+	
 	hero.Register(func(ctx iris.Context) form LoginForm {
 		// 
 		ctx.ReadForm(&form)
