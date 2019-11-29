@@ -15,13 +15,15 @@ go get github.com/kataras/iris/v12@latest
 
 或者编辑你项目的 <font color=red>**`go.mod`**</font> 文件。
 
-	module your_project_name
-	
-	go 1.13
-	
-	require (
-	    github.com/kataras/iris/v12 v12.0.0
-	)
+```
+module your_project_name
+
+go 1.13
+
+require (
+    github.com/kataras/iris/v12 v12.0.0
+)
+```
 
 然后：
 

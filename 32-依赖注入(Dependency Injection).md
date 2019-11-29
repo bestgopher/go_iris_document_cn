@@ -44,6 +44,8 @@ import "github.com/kataras/iris/hero"
 }
 	```
 	
+	
+	
 2. **服务-静态依赖**
 
     ```go
@@ -95,6 +97,8 @@ import "github.com/kataras/iris/hero"
 		return "Hello" + form.Username
 	}
 	```
+	
+	
 
 另外，`hero` 子包增加通过函数的输出值发送响应的支持，例如：
 
